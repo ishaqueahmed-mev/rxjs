@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { take, map, combineAll, pairwise, delay, sequenceEqual, switchMap } from "rxjs/operators";
-import { interval, of, zip, from } from "rxjs";
+import { take, map, combineAll, pairwise, delay, sequenceEqual, switchMap, debounceTime } from "rxjs/operators";
+import { interval, of, zip, from, generate, range, timer, fromEvent } from "rxjs";
 import { HttpService } from "../http.service";
 
 @Component({
@@ -13,13 +13,32 @@ export class CombinationsComponent implements OnInit {
   source$;
   example$;
   allRequest = []
+  searchArray = []
+  oldArr;
+  newArr;
   constructor(
     private hs: HttpService
   ) { }
 
   ngOnInit() {
+    for (let i = 1; i < 50; i++) this.searchArray.push(`test ${i}`);
+
+    this.newArr = this.oldArr = [...this.searchArray];
+    let searchBox = document.getElementById('search');
+    fromEvent(searchBox, 'keyup').pipe(
+      map((i: any) => i.currentTarget.value),
+      debounceTime(500)
+    ).subscribe(rslt => {
+      this.searchArray = this.newArr.filter((x, ind) => {
+        if (x.includes(rslt)) return this.oldArr[ind]
+      })
+    })
 
     // setInterval(() => console.log(new Date().getSeconds()), 1000)
+    generate(2, x => x <= 38, x => x + 3, x => '.'.repeat(x)).subscribe(console.log);
+    range(2, 10).subscribe(val => console.log(val));
+
+    // timer(1000, 3000).subscribe(val => console.log(val));
 
     this.source$ = interval(1000).pipe(take(2));
     this.example$ = this.source$.pipe(
@@ -40,13 +59,13 @@ export class CombinationsComponent implements OnInit {
       )
       .subscribe(console.log);
 
+
+    // ZIP
     const sourceOne = of('Hello');
     const sourceTwo = of('World!');
     const sourceThree = of('Goodbye');
     const sourceFour = of('World!');
     //wait until all observables have emitted a value then emit all as an array
-
-
     const example = zip(
       sourceOne,
       sourceTwo.pipe(delay(1000)),
@@ -54,6 +73,8 @@ export class CombinationsComponent implements OnInit {
       sourceFour.pipe(delay(8000))
     );
     const subscribe = example.subscribe(val => console.log('ZIP EG :: ', val));
+
+    // interval(1000).subscribe(val => console.log(val));
 
     const expectedSequence = from([4, 5, 6]);
 
