@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from "@angular/common/http";
-import { concat, zip, of, merge, forkJoin } from 'rxjs';
+import { concat, zip, of, merge, forkJoin, AsyncSubject, BehaviorSubject } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -27,5 +27,34 @@ export class HttpService {
       this.http.post('http://206.189.135.176/clisson-server/api/variety/list', '', { headers: this.headers }),
       this.http.post('http://206.189.135.176/clisson-server/api/recipe/list', '', { headers: this.headers })
     )
+  }
+
+  callSubject() {
+    // const sub = new AsyncSubject();
+    // sub.subscribe(console.log)
+    // sub.next(123)
+
+    // sub.subscribe(console.log);
+    // sub.next(456);
+
+    // sub.subscribe(console.log);
+    // sub.next(789);
+
+    // sub.complete()
+
+    const subject = new BehaviorSubject(123);
+    // two new subscribers will get initial value => output: 123, 123
+    subject.subscribe(console.log);
+    subject.subscribe(console.log);
+
+    // two subscribers will get new value => output: 456, 456
+    subject.next(456);
+
+    // new subscriber will get latest value (456) => output: 456
+    subject.subscribe(console.log);
+
+    // all three subscribers will get new value => output: 789, 789, 789
+    subject.next(789);
+
   }
 }

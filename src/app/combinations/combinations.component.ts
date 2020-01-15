@@ -1,5 +1,5 @@
-import { Component, OnInit } from '@angular/core';
-import { take, map, combineAll, pairwise, delay, sequenceEqual, switchMap, debounceTime } from "rxjs/operators";
+import { Component, OnInit, ApplicationRef } from '@angular/core';
+import { take, map, combineAll, pairwise, delay, sequenceEqual, switchMap, debounceTime, distinctUntilKeyChanged, distinct, distinctUntilChanged } from "rxjs/operators";
 import { interval, of, zip, from, generate, range, timer, fromEvent } from "rxjs";
 import { HttpService } from "../http.service";
 
@@ -20,17 +20,34 @@ export class CombinationsComponent implements OnInit {
     private hs: HttpService
   ) { }
 
+  callAsync(a, b) {
+    console.log('ARGUMENTS :: ', [...arguments])
+    return {a, b}
+  }
+
+  callSync(a, b) {
+    return {b, a}
+  }
+
   ngOnInit() {
+    this.hs.callSubject()
+
     for (let i = 1; i < 50; i++) this.searchArray.push(`test ${i}`);
+
+    // THIS IS REAL SHIT
+    let send = this.searchArray.length > 0 ? this.callAsync : this.callSync;
+    console.log(send('damn', 'you'))
 
     this.newArr = this.oldArr = [...this.searchArray];
     let searchBox = document.getElementById('search');
     fromEvent(searchBox, 'keyup').pipe(
       map((i: any) => i.currentTarget.value),
-      debounceTime(500)
+      debounceTime(500),
+      // distinctUntilChanged() // Good thing
     ).subscribe(rslt => {
+      console.log(new Date().getSeconds())
       this.searchArray = this.newArr.filter((x, ind) => {
-        if (x.includes(rslt)) return this.oldArr[ind]
+        if (x.includes(rslt.trim())) return this.oldArr[ind]
       })
     })
 
@@ -82,10 +99,10 @@ export class CombinationsComponent implements OnInit {
       .pipe(switchMap(arr => from(arr).pipe(sequenceEqual(expectedSequence))))
       .subscribe(rslt => console.log('SEQUENCE EQUAL :: ', rslt));
 
-    this.hs.getMeMF().subscribe(result => {
-      this.allRequest.push(result)
-      console.log(this.allRequest)
-    })
+    // this.hs.getMeMF().subscribe(result => {
+    //   this.allRequest.push(result)
+    //   console.log(this.allRequest)
+    // })
 
 
   }
